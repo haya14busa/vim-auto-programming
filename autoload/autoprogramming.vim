@@ -29,21 +29,40 @@ endfunction
 function! s:horizontal(query) abort
   let lines = systemlist(printf('git grep --fixed-string -h -e "%s"', escape(a:query, '"')))
   let re = '^\s*\V' .  escape(a:query, '\')
+  let counts = {}
   for line in lines
     if line =~# re
-      call complete_add(s:trim_start(line))
+      let l = s:trim_start(line)
+      if !has_key(counts, l)
+        let counts[l] = 0
+      endif
+      let counts[l] += 1
     endif
   endfor
-  return []
+  return s:summarize(counts)
 endfunction
 
 function! s:vertical(query) abort
   let lines = systemlist(printf('git grep -A1 --fixed-string -h -e "%s"', escape(a:query, '"')))
+  let counts = {}
   while len(lines) > 1
     if s:trim_start(remove(lines, 0)) ==# a:query
-      call complete_add(s:trim_start(remove(lines, 0)))
+      let l = s:trim_start(remove(lines, 0))
+      if !has_key(counts, l)
+        let counts[l] = 0
+      endif
+      let counts[l] += 1
     endif
   endwhile
+  return s:summarize(counts)
+endfunction
+
+function! s:summarize(counts) abort
+  let results = []
+  for [line, cnt] in sort(items(a:counts), {a, b -> b[1] - a[1]})
+    let results += [{'word': line, 'menu': printf('(%d)', cnt)}]
+  endfor
+  return results
 endfunction
 
 function! s:trim_start(str) abort
