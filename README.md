@@ -13,7 +13,7 @@ It's like `i_CTRL-X_CTRL-L` but powerd by `git grep`.
 set completefunc=autoprogramming#complete
 ```
 
-Write some code and run `<C-x><C-u>` or something to invoke `autoprogramming#complete manually`.
+Write some code and run `<C-x><C-u>` or something to invoke `autoprogramming#complete` manually.
 You will get candidates of next line of the code.
 
 For example, when you type `impo`, the code you want to get is `import (`, and you might want to insert next line as `"fmt"`.
