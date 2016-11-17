@@ -5,6 +5,8 @@ It's a Vim port implementation of [hitode909/atom-auto-programming](https://gith
 
 It's like `i_CTRL-X_CTRL-L` but powerd by `git grep`.
 
+![demo](https://raw.githubusercontent.com/haya14busa/i/41a4dddba9d6bb00654c506cc84455d756e8cd31/vim-auto-programming/anim.gif)
+
 ## How To Use
 
 ```vim
