@@ -38,9 +38,6 @@ function! s:horizontal(query, skip) abort
   call job.start()
   call job.await({-> complete_check() || getchar(1)})
   let lines = job.stdout
-  if empty(lines)
-    return s:horizontal(a:query, a:skip+1)
-  endif
   let counts = {}
   let abbrs = {}
   for line in lines
@@ -54,6 +51,9 @@ function! s:horizontal(query, skip) abort
       let counts[l] += 1
     endif
   endfor
+  if empty(counts)
+    return s:horizontal(a:query, a:skip+1)
+  endif
   return s:summarize(counts, abbrs)
 endfunction
 
