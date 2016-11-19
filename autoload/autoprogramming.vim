@@ -42,17 +42,19 @@ function! s:horizontal(query, skip) abort
     return s:horizontal(a:query, a:skip+1)
   endif
   let counts = {}
+  let abbrs = {}
   for line in lines
     let compl = s:compl(line, shortq, a:skip ==# 0)
     if compl !=# ""
       let l = s:base(a:query, shortq) . compl
       if !has_key(counts, l)
         let counts[l] = 0
+        let abbrs[l] = shortq . compl
       endif
       let counts[l] += 1
     endif
   endfor
-  return s:summarize(counts)
+  return s:summarize(counts, abbrs)
 endfunction
 
 function! s:vertical(query) abort
@@ -71,15 +73,16 @@ function! s:vertical(query) abort
       let counts[l] += 1
     endif
   endwhile
-  return s:summarize(counts)
+  return s:summarize(counts, {})
 endfunction
 
-function! s:summarize(counts) abort
+function! s:summarize(counts, abbrs) abort
   let results = []
   for [line, cnt] in sort(items(a:counts), {a, b -> b[1] - a[1]})
+    let abbr = get(a:abbrs, line, line)[:g:autoprogramming#maxwidth]
     let results += [{
     \   'word': line,
-    \   'abbr': line[:g:autoprogramming#maxwidth],
+    \   'abbr': abbr,
     \   'menu': printf('(%d)', cnt),
     \ }]
   endfor
