@@ -40,6 +40,7 @@ function! s:horizontal(query, skip) abort
   let lines = job.stdout
   let counts = {}
   let abbrs = {}
+  let usages = {}
   for line in lines
     let precompl = ''
     for whole_line in [v:false, v:true]
@@ -49,8 +50,10 @@ function! s:horizontal(query, skip) abort
         if !has_key(counts, l)
           let counts[l] = 0
           let abbrs[l] = shortq . compl
+          let usages[l] = {}
         endif
         let counts[l] += 1
+        let usages[l][s:trim_start(line)] = 1
       endif
       let precompl = compl
     endfor
@@ -58,7 +61,7 @@ function! s:horizontal(query, skip) abort
   if empty(counts)
     return s:horizontal(a:query, a:skip+1)
   endif
-  return s:summarize(counts, abbrs)
+  return s:summarize(counts, abbrs, usages)
 endfunction
 
 function! s:vertical(query) abort
@@ -77,10 +80,10 @@ function! s:vertical(query) abort
       let counts[l] += 1
     endif
   endwhile
-  return s:summarize(counts, {})
+  return s:summarize(counts, {}, {})
 endfunction
 
-function! s:summarize(counts, abbrs) abort
+function! s:summarize(counts, abbrs, usages) abort
   let results = []
   for [line, cnt] in sort(items(a:counts), {a, b -> b[1] - a[1]})
     let abbr = get(a:abbrs, line, line)[:g:autoprogramming#maxwidth]
@@ -88,6 +91,7 @@ function! s:summarize(counts, abbrs) abort
     \   'word': line,
     \   'abbr': abbr,
     \   'menu': printf('(%d)', cnt),
+    \   'info': join(keys(get(a:usages, line, {})), "\n"),
     \ }]
   endfor
   return results
