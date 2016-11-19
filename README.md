@@ -1,11 +1,13 @@
 # vim-auto-programming
 
 vim-auto-programming provides statistical whole lines completions for git projects.
-It's a Vim port implementation of [hitode909/atom-auto-programming](https://github.com/hitode909/atom-auto-programming).
+It's inspired by [hitode909/atom-auto-programming](https://github.com/hitode909/atom-auto-programming).
 
-It's like `i_CTRL-X_CTRL-L` but powered by `git grep`.
+It's like `i_CTRL-X_CTRL-L` and `i_CTRL-X_CTRL-K` but powered by `git grep`.
 
 ![demo](https://raw.githubusercontent.com/haya14busa/i/41a4dddba9d6bb00654c506cc84455d756e8cd31/vim-auto-programming/anim.gif)
+
+![demo_keyword_compl.gif (914×766)](https://raw.githubusercontent.com/haya14busa/i/bd561ea622e581efcce58efd961237b91de22292/vim-auto-programming/demo_keyword_compl.gif)
 
 ## How To Use
 
