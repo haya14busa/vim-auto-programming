@@ -30,7 +30,7 @@ endfunction
 
 function! s:horizontal(query, skip) abort
   let shortq = s:shorten(a:query, a:skip)
-  if shortq ==# ''
+  if shortq ==# '' || (a:skip > 0 && a:query ==# shortq)
     return []
   endif
   let cmd = ['git', 'grep', '--fixed-string', '-h', '-e', shortq]
@@ -46,7 +46,7 @@ function! s:horizontal(query, skip) abort
   for line in lines
     let compl = s:compl(line, shortq, a:skip ==# 0)
     if compl !=# ""
-      let l = s:base(a:query, shortq) . compl
+      let l = s:trim_start(a:query . compl)
       if !has_key(counts, l)
         let counts[l] = 0
         let abbrs[l] = shortq . compl
@@ -94,17 +94,12 @@ function! s:trim_start(str) abort
 endfunction
 
 function! s:shorten(str, i) abort
-  let p = printf('^\%%(.\{-}\<\)\{,%d}', a:i)
-  return substitute(a:str, p, '', '')
-endfunction
-
-function! s:base(original_query, short_query) abort
-  let r = ''
-  let i = stridx(a:original_query, a:short_query)
-  if i > 0
-    let r = a:original_query[:i-1]
-  endif
-  return s:trim_start(r . a:short_query)
+  let str = a:str
+  let p = '^.\{-1,}\%(\<\|$\)'
+  for _ in range(a:i)
+    let str = substitute(str, p, '', '')
+  endfor
+  return str
 endfunction
 
 function! s:compl(found, short_query, whole_line) abort
