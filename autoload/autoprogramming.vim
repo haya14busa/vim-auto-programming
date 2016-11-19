@@ -7,6 +7,8 @@ scriptencoding utf-8
 let s:save_cpo = &cpo
 set cpo&vim
 
+let g:autoprogramming#maxwidth = get(g:, 'autoprogramming#maxwidth', 50)
+
 function! autoprogramming#complete(findstart, base) abort
   if a:findstart
     return autoprogramming#find_start_col()
@@ -68,7 +70,11 @@ endfunction
 function! s:summarize(counts) abort
   let results = []
   for [line, cnt] in sort(items(a:counts), {a, b -> b[1] - a[1]})
-    let results += [{'word': line, 'menu': printf('(%d)', cnt)}]
+    let results += [{
+    \   'word': line,
+    \   'abbr': line[:g:autoprogramming#maxwidth],
+    \   'menu': printf('(%d)', cnt),
+    \ }]
   endfor
   return results
 endfunction
