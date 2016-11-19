@@ -25,20 +25,27 @@ function! autoprogramming#completion_items(base) abort
   if query ==# ''
     return s:vertical(s:trim_start(getline(line('.')-1)))
   endif
-  return s:horizontal(query)
+  return s:horizontal(query, 0)
 endfunction
 
-function! s:horizontal(query) abort
-  let cmd = ['git', 'grep', '--fixed-string', '-h', '-e', a:query]
+function! s:horizontal(query, skip) abort
+  let shortq = s:shorten(a:query, a:skip)
+  if shortq ==# ''
+    return []
+  endif
+  let cmd = ['git', 'grep', '--fixed-string', '-h', '-e', shortq]
   let job = autoprogramming#async#new_job(cmd)
   call job.start()
   call job.await({-> complete_check() || getchar(1)})
   let lines = job.stdout
-  let re = '^\s*\V' .  escape(a:query, '\')
+  if empty(lines)
+    return s:horizontal(a:query, a:skip+1)
+  endif
   let counts = {}
   for line in lines
-    if line =~# re
-      let l = s:trim_start(line)
+    let compl = s:compl(line, shortq, a:skip ==# 0)
+    if compl !=# ""
+      let l = s:base(a:query, shortq) . compl
       if !has_key(counts, l)
         let counts[l] = 0
       endif
@@ -81,6 +88,32 @@ endfunction
 
 function! s:trim_start(str) abort
   return matchstr(a:str,'^\s*\zs.\{-}$')
+endfunction
+
+function! s:shorten(str, i) abort
+  let p = printf('^\%%(\s*\S\+\s*\)\{,%d}', a:i)
+  return substitute(a:str, p, '', '')
+endfunction
+
+function! s:base(original_query, short_query) abort
+  let r = ''
+  let i = stridx(a:original_query, a:short_query)
+  if i > 0
+    let r = a:original_query[:i-1]
+  endif
+  return s:trim_start(r . a:short_query)
+endfunction
+
+function! s:compl(found, short_query, whole_line) abort
+  let i = stridx(a:found, a:short_query)
+  if i > 0 && a:found[i-1] =~# '\k'
+    return ''
+  endif
+  let rest = a:found[i + len(a:short_query):]
+  if a:whole_line
+    return rest
+  endif
+  return matchstr(rest, '^\s*\(\k\+\|\S\+\)')
 endfunction
 
 if expand('%:p') ==# expand('<sfile>:p')
