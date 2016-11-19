@@ -41,15 +41,19 @@ function! s:horizontal(query, skip) abort
   let counts = {}
   let abbrs = {}
   for line in lines
-    let compl = s:compl(line, shortq, a:skip ==# 0)
-    if compl !=# ""
-      let l = s:trim_start(a:query . compl)
-      if !has_key(counts, l)
-        let counts[l] = 0
-        let abbrs[l] = shortq . compl
+    let precompl = ''
+    for whole_line in [v:false, v:true]
+      let compl = s:compl(line, shortq, whole_line)
+      if compl !=# '' && precompl !=# compl
+        let l = s:trim_start(a:query . compl)
+        if !has_key(counts, l)
+          let counts[l] = 0
+          let abbrs[l] = shortq . compl
+        endif
+        let counts[l] += 1
       endif
-      let counts[l] += 1
-    endif
+      let precompl = compl
+    endfor
   endfor
   if empty(counts)
     return s:horizontal(a:query, a:skip+1)
