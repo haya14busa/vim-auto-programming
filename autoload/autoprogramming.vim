@@ -27,7 +27,11 @@ function! autoprogramming#completion_items(base) abort
 endfunction
 
 function! s:horizontal(query) abort
-  let lines = systemlist(printf('git grep --fixed-string -h -e "%s"', escape(a:query, '"')))
+  let cmd = ['git', 'grep', '--fixed-string', '-h', '-e', a:query]
+  let job = autoprogramming#async#new_job(cmd)
+  call job.start()
+  call job.await({-> complete_check() || getchar(1)})
+  let lines = job.stdout
   let re = '^\s*\V' .  escape(a:query, '\')
   let counts = {}
   for line in lines
@@ -43,7 +47,11 @@ function! s:horizontal(query) abort
 endfunction
 
 function! s:vertical(query) abort
-  let lines = systemlist(printf('git grep -A1 --fixed-string -h -e "%s"', escape(a:query, '"')))
+  let cmd = ['git', 'grep', '-A1', '--fixed-string', '-h', '-e', a:query]
+  let job = autoprogramming#async#new_job(cmd)
+  call job.start()
+  call job.await({-> complete_check() || getchar(1)})
+  let lines = job.stdout
   let counts = {}
   while len(lines) > 1
     if s:trim_start(remove(lines, 0)) ==# a:query
