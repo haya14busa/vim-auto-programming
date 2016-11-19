@@ -91,7 +91,7 @@ function! s:trim_start(str) abort
 endfunction
 
 function! s:shorten(str, i) abort
-  let p = printf('^\%%(\s*\S\+\s*\)\{,%d}', a:i)
+  let p = printf('^\%%(.\{-}\<\)\{,%d}', a:i)
   return substitute(a:str, p, '', '')
 endfunction
 
