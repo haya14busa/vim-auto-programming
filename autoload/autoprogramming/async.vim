@@ -11,6 +11,7 @@ set cpo&vim
 let s:job = {
 \   'cmd': [],
 \   'stdout': [],
+\   'exited': 0,
 \ }
 
 function! autoprogramming#async#new_job(cmd) abort
@@ -19,22 +20,42 @@ function! autoprogramming#async#new_job(cmd) abort
   return job
 endfunction
 
-function! s:job.start() abort
-  let self.job = job_start(self.cmd, {
-  \   'out_cb': self._out_cb,
-  \ })
+if has('nvim')
+  function! s:job.start() abort
+    let self.job = jobstart(self.cmd, extend(self, {
+    \   'on_stdout': self._out_cb,
+    \   'on_exit': self._exit_cb,
+    \ }))
+  endfunction
+else
+  function! s:job.start() abort
+    let self.job = job_start(self.cmd, {
+    \   'out_cb': self._out_cb,
+    \   'exit_cb': self._exit_cb,
+    \ })
+  endfunction
+endif
+
+function! s:job._exit_cb(...) abort
+  let self.exited = 1
 endfunction
 
 function! s:job.await(...) abort
   let l:DoneF = get(a:, 1, {->0})
-  while !l:DoneF() && job_status(self.job) ==# "run"
+  while !l:DoneF() && !self.exited
     sleep 5ms
   endwhile
 endfunction
 
-function! s:job._out_cb(ch, msg) abort
-  let self.stdout += split(a:msg, "\n")
-endfunction
+if has('nvim')
+  function! s:job._out_cb(_job_id, data, event) abort
+    let self.stdout += a:data[:-2]
+  endfunction
+else
+  function! s:job._out_cb(ch, msg) abort
+    let self.stdout += split(a:msg, "\n")
+  endfunction
+endif
 
 let &cpo = s:save_cpo
 unlet s:save_cpo
